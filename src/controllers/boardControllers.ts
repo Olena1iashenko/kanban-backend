@@ -14,10 +14,19 @@ export const searchBoards = async (
     const filter = {
       $or: [
         { title: { $regex: q, $options: 'i' } },
-        { _id: q.match(/^[0-9a-fA-F]{24}$/) ? q : null },
-      ].filter(Boolean),
+        {
+          $expr: {
+            $regexMatch: {
+              input: { $toString: '$_id' },
+              regex: q,
+              options: 'i',
+            },
+          },
+        },
+      ],
     };
-    const boards = await Board.find(filter as any);
+
+    const boards = await Board.find(filter);
     res.json(boards);
   } catch (err) {
     next(err);
